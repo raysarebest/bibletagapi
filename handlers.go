@@ -59,6 +59,8 @@ func PostTag(w http.ResponseWriter, r *http.Request, dbb TagInfoer) {
 
 }
 
+type dbRetrieveHandler func(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer)
+
 // myRetrieveHandler generates a handler accesing DBs or other datasources
 func myRetrieveHandler(handler dbRetrieveHandler, dbb RetrieveInfoer) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -77,11 +79,12 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 		log.Printf("%s: %s", "ERROR Could not read request body", err.Error())
 	}
 
-	tagbook, tagverse, err := dbb.QueryTopTags(body, configuration.TagPostTable)
+	// Get the top tagged book and verses
+	_, _, err = dbb.QueryTopTags(body, configuration.TagPostTable)
 	if err != nil {
 		log.Printf("%s: %s", "ERROR could retrieve top tags for hashtag", err.Error())
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNoContent
+		w.WriteHeader(http.StatusNoContent)
 	}
 
 	// Get JSON response from DBP for tagbook, tagverse
@@ -113,7 +116,7 @@ func isPostValid(body []byte) bool {
 		keys = append(keys, k)
 	}
 
-	if !stringContains(keys, "tags") {
+	if !stringContains(keys, "tag") {
 		return false
 	}
 	if !stringContains(keys, "book")  && !stringContains(keys, "chapter") {
