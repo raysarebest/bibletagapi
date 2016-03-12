@@ -80,7 +80,7 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 	}
 
 	// Get the top tagged book and verses
-	_, _, err = dbb.QueryTopTags(body, configuration.TagPostTable)
+	tagbook, tagchapter, tagverse, err := dbb.QueryTopTags(body, configuration.TagPostTable)
 	if err != nil {
 		log.Printf("%s: %s", "ERROR could retrieve top tags for hashtag", err.Error())
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -88,10 +88,16 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 	}
 
 	// Get JSON response from DBP for tagbook, tagverse
+	dbpmsg, err := dbb.QueryDBP(tagbook, tagchapter, tagverse)
+	if err != nil {
+		log.Printf("%s: %s", "ERROR could retrieve DBP content for hashtag", err.Error())
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNoContent)
+	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusOK, Text: "Cool"}); err != nil {
+	if err := json.NewEncoder(w).Encode(dbpmsg); err != nil {
 		log.Printf("%s: %s", "ERROR could not encode JSON response", err.Error())
 	}
 	return
@@ -116,13 +122,13 @@ func isPostValid(body []byte) bool {
 		keys = append(keys, k)
 	}
 
-	if !stringContains(keys, "tag") {
+	if !StringContains(keys, "tag") {
 		return false
 	}
-	if !stringContains(keys, "book")  && !stringContains(keys, "chapter") {
+	if !StringContains(keys, "book")  && !StringContains(keys, "chapter") {
 		return false
 	}
-	if !stringContains(keys, "startVerse") && !stringContains(keys, "endVerse") {
+	if !StringContains(keys, "startVerse") && !StringContains(keys, "endVerse") {
 		return false
 	}
 
@@ -130,7 +136,7 @@ func isPostValid(body []byte) bool {
 
 }
 
-func stringContains(s []string, e string) bool {
+func StringContains(s []string, e string) bool {
   for _, a := range s {
     if a == e {
         return true

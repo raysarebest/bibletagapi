@@ -52,7 +52,8 @@ func (dbb DBInfo) PostRethink(msg []byte, table string) error {
 
 // RetrieveInfoer is a one method interface agent
 type RetrieveInfoer interface {
-  QueryTopTags([]byte, string) (TagBook, TagVerse, error)
+  QueryTopTags([]byte, string) (TagBook, TagChapter, TagVerse, error)
+  QueryDBP(TagBook, TagChapter, TagVerse) (interface{}, error)
 }
 
 // TagBook encodes tagged bible books for a sepecific hashtag
@@ -73,8 +74,17 @@ type TagVerse struct {
 // TagVerses is a slice of TagVerse
 type TagVerses []TagVerse
 
+// TagChapter encodes tagged bible chapters for a sepecific hashtag
+type TagChapter struct {
+  Group      float64  `json:"group"`
+  Reduction  float64    `json:"reduction"`
+}
+
+// TagChapters is a slice of TagChapter
+type TagChapters []TagChapter
+
 // QueryTopTags queries Rethink DB to get top tagged verses for a hashtag
-func (dbb DBInfo) QueryTopTags(msg []byte, table string) (TagBook, TagVerse, error) {
+func (dbb DBInfo) QueryTopTags(msg []byte, table string) (TagBook, TagChapter, TagVerse, error) {
 
   configuration := ImportConfig()
 
@@ -83,7 +93,7 @@ func (dbb DBInfo) QueryTopTags(msg []byte, table string) (TagBook, TagVerse, err
   jsonerr := json.Unmarshal(msg, &jsonDataer)
   if jsonerr != nil {
     log.Printf("%s: %s", "ERROR could not parse JSON message", jsonerr)
-    return TagBook{}, TagVerse{}, jsonerr
+    return TagBook{}, TagChapter{}, TagVerse{}, jsonerr
   }
   m := jsonDataer.(map[string]interface{})
 
@@ -96,7 +106,7 @@ func (dbb DBInfo) QueryTopTags(msg []byte, table string) (TagBook, TagVerse, err
   })
   if err != nil {
     log.Printf("%s: %s", "ERROR could not connect to RethinkDB", err)
-    return TagBook{}, TagVerse{}, nil
+    return TagBook{}, TagChapter{}, TagVerse{}, nil
   }
 
   // Get the Top Tagged Book
@@ -121,36 +131,63 @@ func (dbb DBInfo) QueryTopTags(msg []byte, table string) (TagBook, TagVerse, err
     // Get the Top Tagged Verse(s)
     res, err = r.DB(configuration.Dbname).Table(table).GetAllByIndex("tag", tag).Filter(map[string]interface{}{
       "book": tagbook.Group,
-    }).Group("startVerse", "endVerse").Count().Run(session)
+    }).Group("chapter").Count().Run(session)
     defer res.Close()
 
     var row interface{}
-    var tvs TagVerses
+    var tcs TagChapters
     for res.Next(&row) {
       rowMap := row.(map[string]interface{})
-      verses := rowMap["group"].([]interface{})
-      var vs []float64
-      for _, v := range verses {
-        vs = append(vs, v.(float64))
-      }
-      tv := TagVerse{
-        Group: vs,
+      tc := TagChapter{
+        Group: rowMap["group"].(float64),
         Reduction: rowMap["reduction"].(float64),
       }
-      tvs = append(tvs, tv)
+      tcs = append(tcs, tc)
     }
-    sort.Sort(tvs)
+    sort.Sort(tcs)
 
-    var tagverse TagVerse
-    if len(tvs) > 0 {
-      tagverse = tvs[0]
+    var tagchapter TagChapter
+    if len(tcs) > 0 {
+
+      tagchapter = tcs[0]
+
+      // Get the Top Tagged Verse(s)
+      res, err = r.DB(configuration.Dbname).Table(table).GetAllByIndex("tag", tag).Filter(map[string]interface{}{
+        "book": tagbook.Group,
+      }).Filter(map[string]interface{}{
+        "chapter": tagchapter.Group,
+      }).Group("startVerse", "endVerse").Count().Run(session)
+      defer res.Close()
+
+      var row interface{}
+      var tvs TagVerses
+      for res.Next(&row) {
+        rowMap := row.(map[string]interface{})
+        verses := rowMap["group"].([]interface{})
+        var vs []float64
+        for _, v := range verses {
+          vs = append(vs, v.(float64))
+        }
+        tv := TagVerse{
+          Group: vs,
+          Reduction: rowMap["reduction"].(float64),
+        }
+        tvs = append(tvs, tv)
+      }
+      sort.Sort(tvs)
+
+      var tagverse TagVerse
+      if len(tvs) > 0 {
+        tagverse = tvs[0]
+      }
+
+      return tagbook, tagchapter, tagverse, nil
+
     }
-
-    return tagbook, tagverse, nil
 
   }
 
-  return TagBook{}, TagVerse{}, nil
+  return TagBook{}, TagChapter{}, TagVerse{}, nil
 
 }
 
@@ -175,5 +212,17 @@ func (slice TagVerses) Less(i, j int) bool {
 }
 
 func (slice TagVerses) Swap(i, j int) {
+    slice[i], slice[j] = slice[j], slice[i]
+}
+
+func (slice TagChapters) Len() int {
+    return len(slice)
+}
+
+func (slice TagChapters) Less(i, j int) bool {
+    return slice[i].Reduction < slice[j].Reduction;
+}
+
+func (slice TagChapters) Swap(i, j int) {
     slice[i], slice[j] = slice[j], slice[i]
 }
