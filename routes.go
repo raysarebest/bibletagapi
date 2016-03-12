@@ -20,4 +20,11 @@ var routes = Routes{
 		"/",
 		Index,
 	},
+	// route to processed new tags for verses
+	Route{
+		"PostTag",
+		"POST",
+		"/tag",
+		http.HandlerFunc(myTagHandler(PostTag, DBInfo{})),
+	},
 }
