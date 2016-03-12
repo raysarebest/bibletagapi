@@ -59,6 +59,46 @@ func PostTag(w http.ResponseWriter, r *http.Request, dbb TagInfoer) {
 
 }
 
+// myRetrieveHandler generates a handler accesing DBs or other datasources
+func myRetrieveHandler(handler dbRetrieveHandler, dbb RetrieveInfoer) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, dbb)
+	}
+}
+
+// RetrieveTag is the handler that returns bible content (from DBP) based on tags
+func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
+
+	configuration := ImportConfig()
+
+	// read the JSON body into a string
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("%s: %s", "ERROR Could not read request body", err.Error())
+	}
+
+	tagbook, tagverse, err := dbb.QueryTopTags(body, configuration.TagPostTable)
+	if err != nil {
+		log.Printf("%s: %s", "ERROR could retrieve top tags for hashtag", err.Error())
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNoContent
+	}
+
+	// Get JSON response from DBP for tagbook, tagverse
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusOK, Text: "Cool"}); err != nil {
+		log.Printf("%s: %s", "ERROR could not encode JSON response", err.Error())
+	}
+	return
+
+	// If we didn't find it, 204
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusNoContent)
+
+}
+
 func isPostValid(body []byte) bool {
 
 	var f interface{}

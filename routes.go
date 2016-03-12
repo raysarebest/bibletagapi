@@ -23,8 +23,15 @@ var routes = Routes{
 	// route to processed new tags for verses
 	Route{
 		"PostTag",
-		"POST",
+		"PUT",
 		"/tag",
 		http.HandlerFunc(myTagHandler(PostTag, DBInfo{})),
+	},
+	// route to return verses based on tags
+	Route{
+		"RetrieveTag",
+		"POST",
+		"/tag",
+		http.HandlerFunc(myRetrieveHandler(RetrieveTag, DBInfo{})),
 	},
 }
