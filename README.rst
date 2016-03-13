@@ -4,7 +4,7 @@ BibleTag-API
 
 | This service supports a REST API for collaboratively tagging the Bible.
 
-`For more information, visit my docs. <docs>`_
+`For more information on the endpoints, visit the API docs. <docs>`_
 
 ----
 Data
