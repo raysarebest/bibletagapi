@@ -139,6 +139,16 @@ func isPostValid(body []byte) bool {
 		return false
 	}
 
+	if _, ok := m["chapter"].(string); ok {
+        return false
+    }
+    if _, ok := m["startVerse"].(string); ok {
+        return false
+    }
+    if _, ok := m["endVerse"].(string); ok {
+        return false
+    }
+
 	return true
 
 }
