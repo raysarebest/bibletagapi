@@ -18,7 +18,7 @@ Technologies
 
 * `Go <https://golang.org/>`_
 * `RethinkDB <https://www.rethinkdb.com/>`_
-* `Docker <https://www.docker.com/> - DockerFile <DockerFile>`_
+* `Docker <https://www.docker.com/>`_ - `DockerFile <DockerFile>`_
 
 -----
 Links
