@@ -25,17 +25,17 @@
     </div>
       <div class="row" style="margin-top:10px;">
         <div class="col-md-4 col-md-offset-4">
-          <h3 class="text-center">What is the BibleTag API</h3>
+          <h3 class="text-center">What is the BibleTag API?</h3>
         </div>
        </div>
        <div class="row" style="margin-top:15px;">
          <div class="col-md-7 col-md-offset-3">
-           <h4>This service supports a REST API for collaboratively tagging the Bible.</h4>
+           <h4>The BibleTag-API is a REST API that enables developers to retrieve Bible verses (in JSON format) based on crowdsourced tagging of of the Bible.   The API also allows developers to tag Bible verses from within their apps and contribute to the repository of tags.  For example, you or your users may not know a relevant Bible reference (e.g., John 3:16).  However, you may know that your would like to display or serve a Bible verse or verses related to "love," "worry," or "encouragement."  The BibleTag-API supports this type of interaction.</h4>
        </div>
       </div>
       <div class="row">
       <div class="col-md-6 col-md-offset-3" style="margin-top:15px;">
-        <h3 class="text-center">Make your first API calls</h3>
+        <h3 class="text-center" style="font-size: 2.5em;">Make your first API calls</h3>
       </div>
     </div>
     <div id="SecondContainer" style="background-color:#a7ccff; border:1px solid #a8a8a8; border-radius:10px; padding:15px;">
@@ -46,14 +46,49 @@
     </div>
     <div class="row">
       <div class="col-md-6">
-        <h4 class="text-left">cURL Example:</h4>
+        <h4 class="text-left" style="color:#787878">cURL Example:</h4>
       </div>
     </div>
     <div class="row">
       <div class="col-md-5 well well-sm" style="margin-left:20px;">
-        <h5 class="text-center" style="font-family:monospace;"><b>curl http://bibletag.xyz:8080/tag/love</b></h5>
+        <h5 class="text-center" style="font-family:monospace;"><b>curl http://bibletag.xyz:8080/tag/Gospel</b></h5>
       </div>
     </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <h4 class="text-left" style="color:#787878">Response:</h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-7 well well-sm" style="margin-left:20px;">
+        <h5 style="font-family:monospace;"><b><pre style="border:none; padding:0;">
+          [
+            {
+              "book_id":"John",
+              "book_name":"John",
+              "book_order":"58",
+              "chapter_id":"3",
+              "chapter_title":"Chapter 3",
+              "paragraph_number":"68",
+              "verse_id":"16",
+              "verse_text":"“For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life."
+            },
+            {
+              "book_id":"John",
+              "book_name":"John",
+              "book_order":"58",
+              "chapter_id":"3",
+              "chapter_title":"Chapter 3",
+              "paragraph_number":"68",
+              "verse_id":"17",
+              "verse_text":"For God did not send his Son into the world to condemn the world, but in order that the world might be saved through him."
+            }
+          ]
+        </pre></b></h5>
+      </div>
+    </div>
+
     <div class="row">
       <div class="col-md-6">
         <h4 class="text-left"><b>POST A TAG</b></h4>
@@ -61,7 +96,7 @@
     </div>
     <div class="row">
       <div class="col-md-6">
-        <h4 class="text-left">cURL Example:</h4>
+        <h4 class="text-left" style="color:#787878">cURL Example:</h4>
       </div>
     </div>
     <div class="row">
@@ -81,6 +116,30 @@
         </pre></b></h5>
       </div>
     </div>
+    <div class="row">
+      <div class="col-md-6">
+        <h4 class="text-left" style="color:#787878">Response:</h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-7 well well-sm" style="margin-left:20px;">
+        <h5 style="font-family:monospace;"><b><pre style="border:none; padding:0;">
+          {
+            "code": 200,
+            "text": "Tagged Passage"
+          }
+        </pre></b></h5>
+      </div>
+    </div>
+
+
+    </div>
+    <div id="projects" style="margin-bottom: 30px;">
+      <h3 class="text-center" style="font-size: 2.5em;">Projects</h3>
+      <div class="links" style="text-align: center; font-size: 1.5em;">
+        <a href="https://github.com/bibletag/slackbot" style="padding-right: 20px;">Slackbot</a>
+        <a href="https://github.com/bibletag/front-end" style="padding-left: 20px;">Web App</a>
+      </div>
     </div>
     </div>
 
