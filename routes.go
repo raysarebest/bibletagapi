@@ -30,8 +30,8 @@ var routes = Routes{
 	// route to return verses based on tags
 	Route{
 		"RetrieveTag",
-		"PUT",
-		"/tag",
+		"GET",
+		"/tag/{currenttag}",
 		http.HandlerFunc(myRetrieveHandler(RetrieveTag, DBInfo{})),
 	},
 }
