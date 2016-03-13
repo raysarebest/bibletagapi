@@ -4,6 +4,8 @@ import (
   "log"
   "encoding/json"
   "sort"
+  "strings"
+  "fmt"
 
   r "github.com/dancannon/gorethink"
 )
@@ -24,17 +26,43 @@ func (dbb DBInfo) PostRethink(msg []byte, table string) error {
   var jsonDataer interface{}
 	jsonerr := json.Unmarshal(msg, &jsonDataer)
   if jsonerr != nil {
-    log.Printf("%s: %s", "ERROR could not parse JSON message", jsonerr)
+    log.Printf("%s: %s", "ERROR could not parse JSON message", jsonerr.Error())
     return jsonerr
   }
   m := jsonDataer.(map[string]interface{})
+
+  // convert book to book_id if necessary
+  book, err := parseBook(m["book"].(string))
+  if err != nil {
+    log.Printf("%s: %s", "ERROR could not parse the tagged book", err.Error())
+    return err
+  }
+
+  // get the tag
+  tag := strings.ToLower(m["tag"].(string))
+
+  // reform the document
+  document := fmt.Sprintf(`{
+      "tag": "%s",
+      "book": "%s",
+      "chapter": %d,
+      "startVerse": %d,
+      "endVerse": %d
+    }`, tag, book, int(m["chapter"].(float64)), 
+    int(m["startVerse"].(float64)), int(m["endVerse"].(float64)))
+  jsonerr = json.Unmarshal([]byte(document), &jsonDataer)
+  if jsonerr != nil {
+    log.Printf("%s: %s", "ERROR could not reform JSON document", jsonerr.Error())
+    return jsonerr
+  }
+  m = jsonDataer.(map[string]interface{})
 
   // connect to Rethink
   session, err := r.Connect(r.ConnectOpts{
       Address: configuration.Dbaddress,
   })
   if err != nil {
-    log.Printf("%s: %s", "ERROR could not connect to RethinkDB", err)
+    log.Printf("%s: %s", "ERROR could not connect to RethinkDB", err.Error())
     return err
   }
 
@@ -42,7 +70,7 @@ func (dbb DBInfo) PostRethink(msg []byte, table string) error {
   query := r.DB(configuration.Dbname).Table(table).Insert(m)
 	_, err = query.Run(session)
   if err != nil {
-    log.Printf("%s: %s", "ERROR could not push data to RethinkDB", err)
+    log.Printf("%s: %s", "ERROR could not push data to RethinkDB", err.Error())
     return err
   }
 
@@ -88,17 +116,8 @@ func (dbb DBInfo) QueryTopTags(tag string, table string) (TagBook, TagChapter, T
 
   configuration := ImportConfig()
 
-  // // parse the message
-  // var jsonDataer interface{}
-  // jsonerr := json.Unmarshal(msg, &jsonDataer)
-  // if jsonerr != nil {
-  //   log.Printf("%s: %s", "ERROR could not parse JSON message", jsonerr)
-  //   return TagBook{}, TagChapter{}, TagVerse{}, jsonerr
-  // }
-  // m := jsonDataer.(map[string]interface{})
-
-  // // parse the requested tags
-  // tag := m["tag"].(string)
+  // lowercase the tag
+  tag = strings.ToLower(tag)
 
   // connect to Rethink
   session, err := r.Connect(r.ConnectOpts{
@@ -225,4 +244,70 @@ func (slice TagChapters) Less(i, j int) bool {
 
 func (slice TagChapters) Swap(i, j int) {
     slice[i], slice[j] = slice[j], slice[i]
+}
+
+func parseBook(bookin string) (string, error) {
+
+  // determine if the book is already a book_id
+  var isalready bool
+  otbooks, err := ReadLines("files/ot.csv")
+  if err != nil {
+    log.Printf("%s: %s", "ERROR Could not read in OT book IDs", err.Error())
+  }
+  if StringContains(otbooks, bookin) {
+    isalready = true
+  }
+  ntbooks, err := ReadLines("files/nt.csv")
+  if err != nil {
+    log.Printf("%s: %s", "ERROR Could not read in NT book IDs", err.Error())
+  }
+  if StringContains(ntbooks, bookin) {
+    isalready = true
+  }
+
+  if isalready {
+    return bookin, nil
+  }
+
+  // determine if the book has a mapping in the DB
+  bookout, err := mapBook(bookin)
+  if err != nil {
+    return "", err
+  }
+
+  return bookout, nil
+
+} 
+
+func mapBook(bookin string) (string, error) {
+
+  configuration := ImportConfig()
+
+  // connect to Rethink
+  session, err := r.Connect(r.ConnectOpts{
+      Address: configuration.Dbaddress,
+  })
+  if err != nil {
+    log.Printf("%s: %s", "ERROR could not connect to RethinkDB", err)
+    return "", err
+  }
+
+  // Get the Top Tagged Book
+  res, err := r.DB(configuration.Dbname).Table("book_ids").Filter(map[string]interface{}{
+      "aka": strings.ToLower(bookin),
+    }).Run(session)
+  defer res.Close()
+
+  if err == nil { 
+    var row interface{}
+    var bookout string
+    for res.Next(&row) {
+      rowMap := row.(map[string]interface{})
+      bookout = rowMap["book_id"].(string)
+    }
+    return bookout, nil
+  }
+
+  return "", err
+
 }
