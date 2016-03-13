@@ -25,3 +25,9 @@ Links
 -----
 
 * `Unit Tests <goserver_test.go>`_
+
+--------
+License
+--------
+
+BibleTag-API was created by and is licensed under an `MIT-style License <License.md>`_.
