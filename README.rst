@@ -30,4 +30,4 @@ Links
 License
 --------
 
-BibleTag-API was created by and is licensed under an `MIT-style License <License.md>`_.
+BibleTag-API was created by Daniel Whitenack, Michael Hulet, Josh Oppenheim, Benjamin Bledsoe, and anthonyt2345 and is licensed under an `MIT-style License <License.md>`_.
