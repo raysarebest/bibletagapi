@@ -15,6 +15,18 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Welcome to this example API\n")
 }
 
+func ReturnOptions(w http.ResponseWriter, r *http.Request) { 
+
+	w.Header().Set("Access-Control-Allow-Origin", "*") 
+	w.Header().Set("Access-Control-Allow-Methods", "POST") 
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization") 
+
+	// Stop here if its Preflighted OPTIONS request 
+	if r.Method == "OPTIONS" { 
+		return 
+	}
+}
+
 // DBInfo provides functionality for handlers accessing DBs or other datasources
 type DBInfo struct{}
 
@@ -47,6 +59,7 @@ func PostTag(w http.ResponseWriter, r *http.Request, dbb TagInfoer) {
 		rethinkerr := dbb.PostRethink(body, configuration.TagPostTable)
 		if rethinkerr == nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.WriteHeader(http.StatusOK)
 			if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusOK, Text: "Tagged Passage"}); err != nil {
 				log.Printf("%s: %s", "ERROR could not encode JSON response", err.Error())
@@ -57,7 +70,9 @@ func PostTag(w http.ResponseWriter, r *http.Request, dbb TagInfoer) {
 
 	// If we didn't find it, 304
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNotModified)
+	return
 
 }
 
@@ -75,12 +90,6 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 
 	configuration := ImportConfig()
 
-	// // read the JSON body into a string
-	// body, err := ioutil.ReadAll(r.Body)
-	// if err != nil {
-	// 	log.Printf("%s: %s", "ERROR Could not read request body", err.Error())
-	// }
-
 	// parsed variables from the router
 	vars := mux.Vars(r)
 	currenttag := vars["currenttag"]
@@ -90,28 +99,38 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 	if err != nil {
 		log.Printf("%s: %s", "ERROR could retrieve top tags for hashtag", err.Error())
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusNoContent)
+		return
 	}
 
-	// Get JSON response from DBP for tagbook, tagverse
-	dbpmsg, err := dbb.QueryDBP(tagbook, tagchapter, tagverse)
-	if err != nil {
-		log.Printf("%s: %s", "ERROR could retrieve DBP content for hashtag", err.Error())
+	var dbpmsg interface{}
+	if len(tagverse.Group) > 0 {
+
+		// Get JSON response from DBP for tagbook, tagverse
+		dbpmsg, err = dbb.QueryDBP(tagbook, tagchapter, tagverse)
+		if err != nil {
+			log.Printf("%s: %s", "ERROR could retrieve DBP content for hashtag", err.Error())
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(dbpmsg); err != nil {
+			log.Printf("%s: %s", "ERROR could not encode JSON response", err.Error())
+		}
+		return
+
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(dbpmsg); err != nil {
-		log.Printf("%s: %s", "ERROR could not encode JSON response", err.Error())
-	}
-	return
-
-	// If we didn't find it, 204
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNoContent)
+	return
 
 }
 
@@ -120,7 +139,7 @@ func isPostValid(body []byte) bool {
 	var f interface{}
 	err := json.Unmarshal(body, &f)
 	if err != nil {
-		log.Printf("%s: %s", "ERROR Could not unmarshall JSON into interface", err.Error())
+		log.Printf("%s: %s", "ERROR Could not unmarshal JSON into interface", err.Error())
 	}
 	m := f.(map[string]interface{})
 

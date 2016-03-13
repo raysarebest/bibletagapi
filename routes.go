@@ -34,4 +34,10 @@ var routes = Routes{
 		"/tag/{currenttag}",
 		http.HandlerFunc(myRetrieveHandler(RetrieveTag, DBInfo{})),
 	},
+	Route{
+		"ReturnOptions",
+		"OPTIONS",
+		"/tag",
+		ReturnOptions,
+	},
 }
