@@ -25,6 +25,7 @@ Links
 -----
 
 * `Unit Tests <goserver_test.go>`_
+* `Example Environmental Vars <files/example.env>`_
 
 --------
 License
