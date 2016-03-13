@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"encoding/json"
+
+	"github.com/gorilla/mux"
 )
 
 // Index is the handler for the root URL
@@ -73,14 +75,18 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 
 	configuration := ImportConfig()
 
-	// read the JSON body into a string
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Printf("%s: %s", "ERROR Could not read request body", err.Error())
-	}
+	// // read the JSON body into a string
+	// body, err := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	log.Printf("%s: %s", "ERROR Could not read request body", err.Error())
+	// }
+
+	// parsed variables from the router
+	vars := mux.Vars(r)
+	currenttag := vars["currenttag"]
 
 	// Get the top tagged book and verses
-	tagbook, tagchapter, tagverse, err := dbb.QueryTopTags(body, configuration.TagPostTable)
+	tagbook, tagchapter, tagverse, err := dbb.QueryTopTags(currenttag, configuration.TagPostTable)
 	if err != nil {
 		log.Printf("%s: %s", "ERROR could retrieve top tags for hashtag", err.Error())
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -96,6 +102,7 @@ func RetrieveTag(w http.ResponseWriter, r *http.Request, dbb RetrieveInfoer) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(dbpmsg); err != nil {
 		log.Printf("%s: %s", "ERROR could not encode JSON response", err.Error())

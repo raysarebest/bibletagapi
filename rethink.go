@@ -52,7 +52,7 @@ func (dbb DBInfo) PostRethink(msg []byte, table string) error {
 
 // RetrieveInfoer is a one method interface agent
 type RetrieveInfoer interface {
-  QueryTopTags([]byte, string) (TagBook, TagChapter, TagVerse, error)
+  QueryTopTags(string, string) (TagBook, TagChapter, TagVerse, error)
   QueryDBP(TagBook, TagChapter, TagVerse) (interface{}, error)
 }
 
@@ -84,21 +84,21 @@ type TagChapter struct {
 type TagChapters []TagChapter
 
 // QueryTopTags queries Rethink DB to get top tagged verses for a hashtag
-func (dbb DBInfo) QueryTopTags(msg []byte, table string) (TagBook, TagChapter, TagVerse, error) {
+func (dbb DBInfo) QueryTopTags(tag string, table string) (TagBook, TagChapter, TagVerse, error) {
 
   configuration := ImportConfig()
 
-  // parse the message
-  var jsonDataer interface{}
-  jsonerr := json.Unmarshal(msg, &jsonDataer)
-  if jsonerr != nil {
-    log.Printf("%s: %s", "ERROR could not parse JSON message", jsonerr)
-    return TagBook{}, TagChapter{}, TagVerse{}, jsonerr
-  }
-  m := jsonDataer.(map[string]interface{})
+  // // parse the message
+  // var jsonDataer interface{}
+  // jsonerr := json.Unmarshal(msg, &jsonDataer)
+  // if jsonerr != nil {
+  //   log.Printf("%s: %s", "ERROR could not parse JSON message", jsonerr)
+  //   return TagBook{}, TagChapter{}, TagVerse{}, jsonerr
+  // }
+  // m := jsonDataer.(map[string]interface{})
 
-  // parse the requested tags
-  tag := m["tag"].(string)
+  // // parse the requested tags
+  // tag := m["tag"].(string)
 
   // connect to Rethink
   session, err := r.Connect(r.ConnectOpts{
