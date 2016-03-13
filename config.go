@@ -15,7 +15,7 @@ func ImportConfig() Configuration {
 	// initialize default configuration
 	configuration := Configuration{
 		Dbname:        "bibletagapi",
-		Dbaddress:     "45.55.144.141:28015",
+		Dbaddress:     "localhost:28015",
 		TagPostTable:  "tags",
 	}
 
