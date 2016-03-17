@@ -6,7 +6,7 @@ BibleTag-API
 
 `For more information on the endpoints, visit the API docs. <docs>`_
 
-| A hosted version of the API is ready for your use!  See `here <http://bibletag.github.io/bibletagapi/>`_ for more info.
+| A hosted version of the API is ready for your use!  See `here <http://bibletag.xyz/>`_ for more info.
 
 ----
 Data
