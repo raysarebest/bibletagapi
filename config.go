@@ -7,6 +7,7 @@ type Configuration struct {
 	Dbname            string
 	Dbaddress         string
 	TagPostTable      string
+	DBPAPIKey					string
 }
 
 // ImportConfig instantiates the above structure info
@@ -17,6 +18,7 @@ func ImportConfig() Configuration {
 		Dbname:        "bibletagapi",
 		Dbaddress:     "localhost:28015",
 		TagPostTable:  "tags",
+		DBPAPIKey:		 nil
 	}
 
 	// override defaults if environmental vars available
@@ -28,6 +30,9 @@ func ImportConfig() Configuration {
 	}
 	if os.Getenv("BIBLETAGAPI_TAGPOSTTABLE") != "" {
 		configuration.TagPostTable = os.Getenv("BIBLETAGAPI_TAGPOSTTABLE")
+	}
+	if os.Getenv("BIBLETAGAPI_DBP_API_KEY") != "" {
+		configuration.DBPAPIKey = os.Getenv("BIBLETAGAPI_DBP_API_KEY")
 	}
 
 	return configuration
