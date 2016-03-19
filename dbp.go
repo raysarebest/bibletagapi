@@ -41,7 +41,7 @@ func (dbb DBInfo) QueryDBP(tb TagBook, tc TagChapter, tv TagVerse) (interface{},
 
   res, err := http.Get(url)
   if err != nil {
-    log.Printf("%s: %s", "ERROR could retrieve DBP content for hashtag", err.Error())
+    log.Printf("%s: %s", "ERROR could not retrieve DBP content for hashtag", err.Error())
   }
   defer res.Body.Close()
 

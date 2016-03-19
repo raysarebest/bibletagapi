@@ -18,7 +18,7 @@ func ImportConfig() Configuration {
 		Dbname:        "bibletagapi",
 		Dbaddress:     "localhost:28015",
 		TagPostTable:  "tags",
-		DBPAPIKey:		 nil
+		DBPAPIKey:		 ""
 	}
 
 	// override defaults if environmental vars available
