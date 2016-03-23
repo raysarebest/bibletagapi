@@ -11,7 +11,7 @@ import (
 )
 
 // QueryDBP get bible content from DBP for a hashtag
-func (dbb DBInfo) QueryDBP(tb TagBook, tc TagChapter, tv TagVerse) (interface{}, error) { 
+func (dbb DBInfo) QueryDBP(tb TagBook, tc TagChapter, tv TagVerse) (interface{}, error) {
 
   book := tb.Group
   sverse := tv.Group[0]
@@ -35,13 +35,13 @@ func (dbb DBInfo) QueryDBP(tb TagBook, tc TagChapter, tv TagVerse) (interface{},
     testament = "N"
   }
 
-  apikey := "00ace9b063e81fd15035683e33d34a2f"
+  apikey := ImportConfig().DBPAPIKey
   url := fmt.Sprintf(`http://dbt.io/text/verse?key=%s&dam_id=ENGESV%s2ET&book_id=%s&chapter_id=%d&verse_start=%d&verse_end=%d&v=2`,
     apikey, testament, book, int(chapter), int(sverse), int(everse))
 
   res, err := http.Get(url)
   if err != nil {
-    log.Printf("%s: %s", "ERROR could retrieve DBP content for hashtag", err.Error())
+    log.Printf("%s: %s", "ERROR could not retrieve DBP content for hashtag", err.Error())
   }
   defer res.Body.Close()
 
